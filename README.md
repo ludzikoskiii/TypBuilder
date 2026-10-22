@@ -15,15 +15,22 @@ Wymagany Python 3.11+.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+source .venv/bin/activate          # Windows PowerShell: .\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
+
+Na Windows w PowerShell aktywacja może być zablokowana – wtedy jednorazowo
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. Środowisko wirtualne jest opcjonalne.
 
 ## Uruchomienie
 
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
+
+`python -m streamlit` działa zawsze; samo `streamlit run app.py` wymaga, by katalog `Scripts`
+Pythona był w PATH (na Windows często nie jest – błąd „The term 'streamlit' is not recognized”).
+Jeśli Windows nie zna polecenia `python`, użyj `py` (np. `py -m streamlit run app.py`).
 
 Aplikacja otworzy się w przeglądarce (domyślnie http://localhost:8501). Przy pierwszym
 uruchomieniu pobierze dane z football-data.co.uk (kilkanaście sekund).
