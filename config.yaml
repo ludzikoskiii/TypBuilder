@@ -63,10 +63,13 @@ model:
   max_goals: 10
   # Słaba regularyzacja L2 parametrów ataku/obrony (stabilizuje drużyny z małą liczbą meczów).
   ridge: 1.0
-  # Drużyny z mniejszą liczbą meczów w oknie są mieszane z fallbackiem
-  # (średnia `fallback_bottom_k` najsłabszych drużyn). 0 meczów = sam fallback.
+  # Drużyny z mniejszą liczbą meczów w oknie (beniaminki) dostają prior wokół fallbacku
+  # = średniej `fallback_bottom_k` najsłabszych drużyn. Siła priora (`fallback_strength`,
+  # ~ liczba "wirtualnych meczów" x 1.3) maleje liniowo do zera przy min_matches meczach.
+  # Drużyna bez żadnego meczu w oknie dostaje dokładnie fallback.
   min_matches: 6
   fallback_bottom_k: 3
+  fallback_strength: 10.0
 
 market:
   # Metoda usuwania marży używana jako "prawdopodobieństwo rynku": "shin" lub "proportional".
