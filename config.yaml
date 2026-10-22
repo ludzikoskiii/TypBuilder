@@ -1,0 +1,98 @@
+# Konfiguracja aplikacji Typer DC.
+# Wszystkie kwoty w walucie z sekcji `budget.currency`.
+
+data:
+  base_url: "https://www.football-data.co.uk"
+  cache_dir: "data/cache"
+  # Pliki bieżącego sezonu, zbiorcze pliki "extra leagues" i fixtures są pobierane
+  # ponownie dopiero, gdy kopia w cache jest starsza niż max_age_hours.
+  # Zakończone sezony lig głównych nie zmieniają się, więc nie są pobierane ponownie.
+  max_age_hours: 12
+  # Ile sezonów wstecz (łącznie z bieżącym) pobierać. 3 ostatnie służą do backtestu,
+  # starsze jako rozgrzewka modelu i zbiór walidacyjny do strojenia xi.
+  seasons_back: 6
+  # Kolejność preferencji źródeł kursów (prefiksy kolumn football-data).
+  # "Avg" = średnia rynkowa, "PS" = Pinnacle, "B365" = Bet365, "BFE" = giełda Betfair.
+  # Avg jest pierwsze, bo jest dostępne we wszystkich sezonach (Pinnacle zniknął
+  # z plików od sezonu 2026/27), więc benchmark jest spójny w czasie.
+  odds_priority: ["Avg", "PS", "B365"]
+  closing_priority: ["AvgC", "PSC", "B365C"]
+  # Dodatkowe aliasy nazw drużyn (wariant -> nazwa kanoniczna).
+  team_aliases: {}
+
+leagues:
+  E0:
+    name: "Premier League"
+    type: main          # pliki per sezon: mmz4281/<sezon>/<kod>.csv
+    code: E0
+  POL:
+    name: "Ekstraklasa"
+    type: extra         # plik zbiorczy: new/<kod>.csv
+    code: POL
+    country: "Poland"
+    league: "Ekstraklasa"
+  E1:
+    name: "Championship"
+    type: main
+    code: E1
+  SP1:
+    name: "La Liga"
+    type: main
+    code: SP1
+  D1:
+    name: "Bundesliga"
+    type: main
+    code: D1
+  I1:
+    name: "Serie A"
+    type: main
+    code: I1
+  F1:
+    name: "Ligue 1"
+    type: main
+    code: F1
+
+model:
+  # Waga czasowa exp(-xi * dni). 0.0019/dzień ~ waga 0.5 po roku.
+  xi: 0.0019
+  # Siatka do strojenia xi na zbiorze walidacyjnym.
+  xi_grid: [0.0, 0.001, 0.0015, 0.0019, 0.0025, 0.0035, 0.005]
+  # Okno treningowe (dni wstecz od daty predykcji).
+  train_days: 1095
+  # Maksymalna liczba goli w macierzy wyników (0..max_goals).
+  max_goals: 10
+  # Słaba regularyzacja L2 parametrów ataku/obrony (stabilizuje drużyny z małą liczbą meczów).
+  ridge: 1.0
+  # Drużyny z mniejszą liczbą meczów w oknie są mieszane z fallbackiem
+  # (średnia `fallback_bottom_k` najsłabszych drużyn). 0 meczów = sam fallback.
+  min_matches: 6
+  fallback_bottom_k: 3
+
+market:
+  # Metoda usuwania marży używana jako "prawdopodobieństwo rynku": "shin" lub "proportional".
+  margin_method: "shin"
+  # Typ jest value, gdy p_model * kurs - 1 > value_threshold.
+  value_threshold: 0.05
+
+staking:
+  bankroll: 1000.0
+  flat_stake: 10.0
+  kelly_fraction: 0.25
+  max_stake_pct: 0.02
+
+backtest:
+  # Sezony walidacyjne (do strojenia xi) = tyle sezonów tuż przed pierwszym testowym.
+  validation_seasons: 1
+  bootstrap_samples: 5000
+  # Zakłady tylko w tym przedziale kursów (bardzo wysokie kursy = duża wariancja).
+  min_odds: 1.2
+  max_odds: 10.0
+  seed: 42
+
+budget:
+  monthly_limit: 200.0
+  currency: "PLN"
+  warn_at_pct: 0.8
+
+journal:
+  db_path: "data/journal.sqlite"
