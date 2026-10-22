@@ -7,7 +7,10 @@ Strojenie xi odbywa się na sezonach walidacyjnych przed pierwszym sezonem testo
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Callable
 
 import numpy as np
@@ -520,6 +523,37 @@ def run_league_backtest(league: str, cfg: dict[str, Any] | None = None, n_test_s
     chosen = test_seasons or seasons[-n_test_seasons:]
     return run_backtest(matches, chosen, cfg, league=league, league_name=cfg["leagues"][league]["name"],
                         tune=tune_xi, progress=progress)
+
+
+# --------------------------------------------------------------------------- zapis podsumowania
+
+
+def summary_path(league: str, cfg: dict[str, Any]) -> Path:
+    return Path(cfg["data"]["cache_dir"]).parent / "backtests" / f"{league}.json"
+
+
+def save_summary(res: BacktestResult, cfg: dict[str, Any]) -> None:
+    """Zapisz skrót ostatniego backtestu ligi (pokazywany w zakładce Mecze)."""
+    main = res.reports.get("1X2")
+    data: dict[str, Any] = {"league": res.league, "run_at": datetime.now().isoformat(timespec="seconds"),
+                            "test_seasons": res.test_seasons, "xi": res.xi, "verdict": res.verdict}
+    if main is not None:
+        data.update({"status": market_verdict(main)[0], "ll_diff": main.ll_diff,
+                     "ll_diff_ci": list(main.ll_diff_ci), "n_bets": main.betting["n_bets"],
+                     "roi": main.betting["roi_flat"], "roi_ci": list(main.betting["roi_ci"])})
+    path = summary_path(res.league, cfg)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_summary(league: str, cfg: dict[str, Any]) -> dict[str, Any] | None:
+    path = summary_path(league, cfg)
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 # --------------------------------------------------------------------------- raport

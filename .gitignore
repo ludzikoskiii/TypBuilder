@@ -7,3 +7,4 @@ data/*.sqlite-journal
 .venv/
 venv/
 .streamlit/secrets.toml
+data/backtests/

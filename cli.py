@@ -36,13 +36,14 @@ def cmd_summary(args: argparse.Namespace) -> None:
 
 
 def cmd_backtest(args: argparse.Namespace) -> None:
-    from backtest import run_league_backtest, format_report
+    from backtest import format_report, run_league_backtest, save_summary
 
     cfg = load_config()
     for league in args.leagues:
         res = run_league_backtest(league, cfg, n_test_seasons=args.seasons,
                                   tune_xi=not args.no_tune, offline=args.offline)
         print(format_report(res))
+        save_summary(res, cfg)
 
 
 def main(argv: list[str] | None = None) -> None:
