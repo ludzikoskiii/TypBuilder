@@ -84,8 +84,12 @@ staking:
   max_stake_pct: 0.02
 
 backtest:
+  # Co ile dni (co najmniej) model jest trenowany od nowa w walk-forward.
+  # 3 = osobno kolejka weekendowa i środkowa tygodnia.
+  refit_days: 3
   # Sezony walidacyjne (do strojenia xi) = tyle sezonów tuż przed pierwszym testowym.
-  validation_seasons: 1
+  # Jeden sezon okazał się zbyt szumny (różnice log-loss między xi rzędu 0.001-0.004).
+  validation_seasons: 2
   bootstrap_samples: 5000
   # Zakłady tylko w tym przedziale kursów (bardzo wysokie kursy = duża wariancja).
   min_odds: 1.2
